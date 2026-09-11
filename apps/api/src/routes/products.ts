@@ -1,0 +1,13 @@
+import {Router} from 'express';import {prisma} from '../db';import {requireAuth,requireRole} from '../middleware/auth';import {Role} from '../generated/prisma/client';import {z} from 'zod';
+const r=Router();
+const productSchema=z.object({name:z.string().min(2),slug:z.string().min(2),category:z.string().min(2),shortDescription:z.string().optional(),description:z.string().min(10),price:z.number().int().positive(),compareAtPrice:z.number().int().positive().optional(),stock:z.number().int().nonnegative(),sku:z.string().min(2),weightGrams:z.number().int().positive().optional(),ingredients:z.string().optional(),imageUrl:z.string().url().optional(),active:z.boolean().optional()});
+r.get('/',async(req,res,next)=>{try{const q=String(req.query.q||'').trim();const category=String(req.query.category||'').trim();const products=await prisma.product.findMany({where:{active:true,...(q?{OR:[{name:{contains:q,mode:'insensitive'}},{description:{contains:q,mode:'insensitive'}}]}:{}),...(category?{category}: {})},orderBy:{createdAt:'desc'}});res.json({products})}catch(e){next(e)}});
+
+r.get('/admin/reviews/list',requireAuth,requireRole(Role.ADMIN),async(_req,res,next)=>{try{res.json({reviews:await prisma.review.findMany({include:{product:{select:{name:true}},user:{select:{name:true,email:true}}},orderBy:{createdAt:'desc'},take:200})})}catch(e){next(e)}});
+r.patch('/admin/reviews/:id',requireAuth,requireRole(Role.ADMIN),async(req,res,next)=>{try{const d=z.object({status:z.enum(['PENDING','APPROVED','REJECTED'])}).parse(req.body);res.json({review:await prisma.review.update({where:{id:req.params.id},data:{status:d.status}})})}catch(e){next(e)}});
+
+r.get('/:slug',async(req,res,next)=>{try{const p=await prisma.product.findUnique({where:{slug:req.params.slug},include:{reviews:{where:{status:'APPROVED'},select:{id:true,rating:true,title:true,body:true,createdAt:true,user:{select:{name:true}}},orderBy:{createdAt:'desc'}}});if(!p||!p.active)return res.status(404).json({message:'Product not found'});res.json({product:p})}catch(e){next(e)}});
+r.post('/',requireAuth,requireRole(Role.ADMIN),async(req,res,next)=>{try{const d=productSchema.parse(req.body);const p=await prisma.product.create({data:d});res.status(201).json({product:p})}catch(e){next(e)}});
+r.patch('/:id',requireAuth,requireRole(Role.ADMIN),async(req,res,next)=>{try{const d=productSchema.partial().parse(req.body);const p=await prisma.product.update({where:{id:req.params.id},data:d});res.json({product:p})}catch(e){next(e)}});
+r.delete('/:id',requireAuth,requireRole(Role.ADMIN),async(req,res,next)=>{try{await prisma.product.update({where:{id:req.params.id},data:{active:false}});res.json({ok:true})}catch(e){next(e)}});
+export default r;

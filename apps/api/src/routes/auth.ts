@@ -1,0 +1,13 @@
+import {Router} from 'express';
+import bcrypt from 'bcryptjs';
+import {z} from 'zod';
+import {prisma} from '../db';
+import {signToken,requireAuth} from '../middleware/auth';
+const r=Router();
+const register=z.object({name:z.string().min(2),email:z.string().email(),password:z.string().min(8),phone:z.string().optional()});
+const login=z.object({email:z.string().email(),password:z.string().min(1)});
+r.post('/register',async(req,res,next)=>{try{const d=register.parse(req.body);const exists=await prisma.user.findUnique({where:{email:d.email.toLowerCase()}});if(exists)return res.status(409).json({message:'Email already registered'});const u=await prisma.user.create({data:{name:d.name,email:d.email.toLowerCase(),passwordHash:await bcrypt.hash(d.password,12),phone:d.phone}});res.cookie('taza_session',signToken(u.id,u.role),{httpOnly:true,sameSite:'lax',secure:process.env.NODE_ENV==='production',maxAge:7*24*60*60*1000});res.status(201).json({user:{id:u.id,name:u.name,email:u.email,role:u.role}})}catch(e){next(e)}});
+r.post('/login',async(req,res,next)=>{try{const d=login.parse(req.body);const u=await prisma.user.findUnique({where:{email:d.email.toLowerCase()}});if(!u||!(await bcrypt.compare(d.password,u.passwordHash)))return res.status(401).json({message:'Invalid email or password'});res.cookie('taza_session',signToken(u.id,u.role),{httpOnly:true,sameSite:'lax',secure:process.env.NODE_ENV==='production',maxAge:7*24*60*60*1000});res.json({user:{id:u.id,name:u.name,email:u.email,role:u.role}})}catch(e){next(e)}});
+r.post('/logout',(_req,res)=>{res.clearCookie('taza_session');res.json({ok:true})});
+r.get('/me',requireAuth,async(req,res)=>{const u=await prisma.user.findUnique({where:{id:req.auth!.userId},select:{id:true,name:true,email:true,phone:true,role:true}});res.json({user:u})});
+export default r;

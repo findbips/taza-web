@@ -1,0 +1,19 @@
+{
+  "name":"taza-platform",
+  "private":true,
+  "workspaces":["apps/web","apps/api"],
+  "scripts":{
+    "dev":"concurrently \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:web":"npm --workspace apps/web run dev",
+    "dev:api":"npm --workspace apps/api run dev",
+    "build":"npm run build:web && npm run build:api",
+    "build:web":"npm --workspace apps/web run build",
+    "build:api":"npm --workspace apps/api run build",
+    "start:web":"npm --workspace apps/web run start",
+    "start:api":"npm --workspace apps/api run start",
+    "db:generate":"npm --workspace apps/api run db:generate",
+    "db:migrate":"npm --workspace apps/api run db:migrate",
+    "db:seed":"npm --workspace apps/api run db:seed"
+  },
+  "devDependencies":{"concurrently":"^9.2.1"}
+}

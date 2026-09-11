@@ -1,0 +1,2 @@
+'use client';import type {Product} from '../lib/types';import {useCart} from './cart-provider';import {useState} from 'react';
+export default function AddToCart({product}:{product:Product}){const {add}=useCart();const [added,setAdded]=useState(false);return <button className="btn primary wide" onClick={()=>{add(product);setAdded(true);setTimeout(()=>setAdded(false),1400)}}>{added?'Added to bag':'Add to bag'}</button>}

@@ -1,0 +1,2 @@
+import Link from 'next/link';
+export default function AdminLayout({children}:{children:React.ReactNode}){return <div className="adminShell"><aside className="adminSide"><strong style={{padding:'10px 12px',display:'block'}}>TAZA / ADMIN</strong><Link href="/admin">Overview</Link><Link href="/admin/products">Products</Link><Link href="/admin/orders">Orders</Link><Link href="/admin/subscribers">Subscribers</Link><Link href="/account">Account</Link><Link href="/shop">View store ↗</Link></aside><section className="adminMain">{children}</section></div>}

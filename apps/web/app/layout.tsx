@@ -1,0 +1,3 @@
+import './globals.css';import type {Metadata} from 'next';import SiteHeader from '../components/site-header';import {CartProvider} from '../components/cart-provider';
+export const metadata:Metadata={title:'TAZA — Freshness, preserved.',description:'Premium natural foods, fruits and botanical infusions. Made thoughtfully in Bangladesh.'};
+export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en"><body><CartProvider><SiteHeader/>{children}<footer><div className="container foot"><span>© 2026 TAZA</span><span>Freshness, preserved.</span><span>Made thoughtfully in Bangladesh · taza.bd</span></div></footer></CartProvider></body></html>}

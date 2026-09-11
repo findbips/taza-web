@@ -1,0 +1,13 @@
+services:
+  api:
+    build: ./apps/api
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      API_PORT: 4000
+      WEB_ORIGIN: ${WEB_ORIGIN}
+    ports:
+      - "4000:4000"
+  # Use a managed PostgreSQL service in production. The local postgres
+  # container in docker-compose.yml is for development only.
