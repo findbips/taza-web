@@ -1,5 +1,6 @@
-import 'dotenv/config';import bcrypt from 'bcryptjs';import {PrismaClient} from '@prisma/client';
-const prisma=new PrismaClient();
+import 'dotenv/config';import bcrypt from 'bcryptjs';import {PrismaClient} from '@prisma/client';import {PrismaPg} from '@prisma/adapter-pg';
+const adapter=new PrismaPg({connectionString:process.env.DATABASE_URL});
+const prisma=new PrismaClient({adapter});
 const products=[
  {slug:'mango',name:'Mango',category:'Fruits',shortDescription:'Sun-ripened mango, gently preserved.',description:'Selected mango with a naturally intense fruit character. Made for snacking, breakfast bowls and slow moments.',price:349,compareAtPrice:399,stock:80,sku:'TAZA-MNG-100',weightGrams:100,ingredients:'Mango'},
  {slug:'pineapple',name:'Pineapple',category:'Fruits',shortDescription:'Bright, tangy pineapple with a clean finish.',description:'A tropical favourite, carefully sliced and preserved to keep its distinctive aroma and tangy sweetness.',price:329,stock:70,sku:'TAZA-PIN-100',weightGrams:100,ingredients:'Pineapple'},
