@@ -1,6 +1,0 @@
-import {Router} from 'express';import {z} from 'zod';import {prisma} from '../db';import {requireAuth,requireRole} from '../middleware/auth';import {Role} from '../generated/prisma/client';
-const r=Router();
-r.get('/me',requireAuth,requireRole(Role.PARTNER),async(req,res,next)=>{try{const p=await prisma.partner.findUnique({where:{userId:req.auth!.userId},include:{commissions:{include:{order:{select:{orderNumber: true,total:true,status:true,createdAt:true}}},orderBy:{createdAt:'desc'}}});res.json({partner:p})}catch(e){next(e)}});
-r.post('/',requireAuth,requireRole(Role.ADMIN),async(req,res,next)=>{try{const d=z.object({userId:z.string(),code:z.string().min(3),commissionRate:z.number().int().min(0).max(100).default(10)}).parse(req.body);const p=await prisma.partner.create({data:d});await prisma.user.update({where:{id:d.userId},data:{role:Role.PARTNER}});res.status(201).json({partner:p})}catch(e){next(e)}});
-r.get('/',requireAuth,requireRole(Role.ADMIN),async(_req,res,next)=>{try{res.json({partners:await prisma.partner.findMany({include:{user:{select:{name:true,email:true}},_count:{select:{orders:true,commissions:true}}},orderBy:{createdAt:'desc'}})})}catch(e){next(e)}});
-export default r;

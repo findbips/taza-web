@@ -1,0 +1,100 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role { CUSTOMER ADMIN PARTNER }
+enum OrderStatus { PENDING CONFIRMED PROCESSING SHIPPED DELIVERED CANCELLED }
+enum PaymentMethod { COD BKASH NAGAD CARD }
+
+model User {
+  id String @id @default(cuid())
+  name String
+  email String @unique
+  passwordHash String
+  phone String?
+  role Role @default(CUSTOMER)
+  orders Order[]
+  partner Partner?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model Partner {
+  id String @id @default(cuid())
+  userId String @unique
+  code String @unique
+  commissionRate Int @default(10)
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  orders Order[]
+  createdAt DateTime @default(now())
+}
+model Product {
+  id String @id @default(cuid())
+  slug String @unique
+  name String
+  category String
+  shortDescription String?
+  description String
+  price Int
+  compareAtPrice Int?
+  stock Int @default(0)
+  sku String @unique
+  weightGrams Int?
+  ingredients String?
+  active Boolean @default(true)
+  imageUrl String?
+  orderItems OrderItem[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model Order {
+  id String @id @default(cuid())
+  orderNumber String @unique
+  userId String?
+  partnerId String?
+  user User? @relation(fields:[userId],references:[id])
+  partner Partner? @relation(fields:[partnerId],references:[id])
+  customerName String
+  email String
+  phone String
+  address String
+  city String @default("Dhaka")
+  subtotal Int
+  deliveryFee Int @default(80)
+  discount Int @default(0)
+  total Int
+  paymentMethod PaymentMethod @default(COD)
+  status OrderStatus @default(PENDING)
+  items OrderItem[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model OrderItem {
+  id String @id @default(cuid())
+  orderId String
+  productId String
+  productName String
+  quantity Int
+  unitPrice Int
+  order Order @relation(fields:[orderId],references:[id],onDelete:Cascade)
+  product Product @relation(fields:[productId],references:[id])
+}
+model NewsletterSubscriber {
+  id String @id @default(cuid())
+  email String @unique
+  source String?
+  createdAt DateTime @default(now())
+}
+model ContactMessage {
+  id String @id @default(cuid())
+  name String
+  email String
+  phone String?
+  message String
+  createdAt DateTime @default(now())
+}
